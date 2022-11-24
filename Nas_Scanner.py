@@ -60,8 +60,8 @@ def files(rootdir,file_extensions):
         for i in file_extensions:
             if x.endswith(i):
                 count+=1
-                d = open("Files dir.txt", "a")
-                h = open("Files hash.txt", "a")
+                d = open("files//Files dir.txt", "a")
+                h = open("files//Files hash.txt", "a")
                 filehash = hash_file(rootdir+"\\"+x)
                 d.write(rootdir+"\\"+x+"\n")
                 h.write(filehash+"\n")
@@ -116,9 +116,9 @@ def filesextentions(rootdir,file_extensions,file_count):
 
 
 def file_prep():
-    d = open("Files dir.txt", "w+")
-    h = open("Files hash.txt", "w+")
-    f = open("dupes.csv", "w+")
+    d = open("files//Files dir.txt", "w+")
+    h = open("files//Files hash.txt", "w+")
+    f = open("files//dupes.csv", "w+")
     f.close()
     d.close()
     h.close()
@@ -136,10 +136,10 @@ def Run(rootdir,html_file_dir):
 
 
 def scan_other():
-    f = open("dupes.csv", "w")
+    f = open("files//dupes.csv", "w")
     f.close
-    d = open("Files dir.txt", "r")
-    h = open("Files hash.txt", "r")
+    d = open("files//Files dir.txt", "r")
+    h = open("files//Files hash.txt", "r")
     Lines = h.readlines()
     Lines_dir = d.readlines()
     flaged = 0
@@ -156,7 +156,7 @@ def scan_other():
                 if y >x:
                     if Lines[x] == Lines[y]:
                         count+=1
-                        f = open("dupes.csv", "a")
+                        f = open("files//dupes.csv", "a")
                         if count == 1:
                             flaged+=1
                             f.write("\n"+Lines_dir[x][:len(Lines_dir[x])-1] + ",\n")
@@ -177,9 +177,9 @@ def scan_other():
 
 
 def make_HTML(num,html_file_dir):
-    status = open("status.run","r")
+    status = open("files//status.run","r")
     html = open(html_file_dir, "w+")
-    csv = open("dupes.csv", "r")
+    csv = open("files//dupes.csv", "r")
     Lines = status.readlines()
 
 
@@ -232,7 +232,7 @@ def make_HTML(num,html_file_dir):
 def read_config():
     scan_dir =""
     html_file_dir = ""
-    with open("config.conf","r+") as conf:
+    with open("files//config.conf","r+") as conf:
         settings = conf.readlines()
         for line in settings:
             if not "#" in line:
