@@ -10,6 +10,16 @@
 *.userosscache
 *.sln.docstates
 
+*.pyproj
+*.sln
+*.html
+/files/dupes.csv
+/files/Files dir.txt
+/files/Files hash.txt
+/files/status.run
+/.gitattributes
+/.gitignore
+
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
 
