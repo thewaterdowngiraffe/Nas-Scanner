@@ -45,7 +45,9 @@ def dirGet(rootdir,file_count,finished,file_extensions,timeStart,html_file_dir):
             print("current scan directory: {}\nScanning {} files. scan completed on {} files.\nPersentage finished: {}%".format( d, file_count, finished, round((finished/file_count)*100,2)))
             if (finished != 0):
                 print("time remaining {} min".format(  round((((time.perf_counter() - timeStart)*(file_count-finished)/finished))/60 ,2)     ))
+
                 with open("files\\status.run","w") as status:
+
                     status.write(str(round(((finished/file_count)*100),2)))
                 print("generating the html file")
                 make_HTML(scan_other(),html_file_dir)
@@ -53,6 +55,7 @@ def dirGet(rootdir,file_count,finished,file_extensions,timeStart,html_file_dir):
     return(finished)
            
 def files(rootdir,file_extensions):
+
     count = 0 
     for x in os.listdir(rootdir):
         for i in file_extensions:
@@ -60,11 +63,14 @@ def files(rootdir,file_extensions):
                 count+=1
                 d = open("files\\Files dir.txt", "a")
                 h = open("files\\Files hash.txt", "a")
+
                 filehash = hash_file(rootdir+"\\"+x)
                 d.write(rootdir+"\\"+x+"\n")
                 h.write(filehash+"\n")
                 #print(i)
+
                 print("\t\t"+filehash)
+
     return(count)
 
 
@@ -114,9 +120,11 @@ def filesextentions(rootdir,file_extensions,file_count):
 
 
 def file_prep():
+
     d = open("files\\Files dir.txt", "w+")
     h = open("files\\Files hash.txt", "w+")
     f = open("files\\dupes.csv", "w+")
+
     f.close()
     d.close()
     h.close()
@@ -134,10 +142,12 @@ def Run(rootdir,html_file_dir):
 
 
 def scan_other():
+
     f = open("files\\dupes.csv", "w")
     f.close
     d = open("files\\Files dir.txt", "r")
     h = open("files\\Files hash.txt", "r")
+
     Lines = h.readlines()
     Lines_dir = d.readlines()
     flaged = 0
@@ -154,7 +164,9 @@ def scan_other():
                 if y >x:
                     if Lines[x] == Lines[y]:
                         count+=1
+
                         f = open("files\\dupes.csv", "a")
+
                         if count == 1:
                             flaged+=1
                             f.write("\n"+Lines_dir[x][:len(Lines_dir[x])-1] + ",\n")
@@ -175,16 +187,20 @@ def scan_other():
 
 
 def make_HTML(num,html_file_dir):
+
     status = open("files\\status.run","r")
     html = open(html_file_dir, "w+")
     csv = open("files\\dupes.csv", "r")
+
     Lines = status.readlines()
 
 
 
     string = '"  onerror=' +"'this.src = " +'"./images/backup.png"' + " loading='lazy'  '>"
     #print(string)
+
     img_tag = ['<img src="',string  ]
+
     body_tag_start = '<!DOCTYPE html>\n<html lang="en">\n\t<head>\n\t\t<meta charset="UTF-8">\n\t\t<meta name="viewport" content="width=device-width, initial-scale=1">\n\t\t<!--  Author: Keegan Andrus https://github.com/thewaterdowngiraffe/Nas-Scanner -->\n\t\t<title>Duplicated images</title>\n\t\t<link rel="stylesheet" href="dupes.css">\n\t\t<style type="text/css">\n\t\t\t* {\n\t\t\t\tmargin: 0;\n\t\t\t\tpadding: 0;\n\t\t\t}\n\t\t</style>\n\t</head>\n\t<body>\n'
     body_tag_end = '\n\t\t</div>\n\t</body>\n</html>'
 
@@ -202,9 +218,11 @@ def make_HTML(num,html_file_dir):
                 print("generating html page")
             else:
                 if divs <= 30:
+
                     html.write('\n\t\t</div>\n\n\t\t<div class="group">\n\t\t\t<h2>group contains {} duplicates</h2>\n'.format(count))
                 if divs == 31:
                     html.write('\n\t\t</div>\n\n\t\t<div class="group">\n\t\t\t<h2> to many Duplicates, to prevent website crashes, no further images will be loaded.<br> to load more images please resolve images located above</h2>\n')
+
             html.write(write_string) 
             write_string = ""
             
@@ -215,7 +233,9 @@ def make_HTML(num,html_file_dir):
         else:
             count+=1
             if divs <= 30:
+
                 write_string += '\n\t\t\t<a href="{}"  target="_blank" >{}{}{}</a>'.format(imgs[:len(imgs)-2],img_tag[0],imgs[:len(imgs)-2],img_tag[1])
+
     
     html.write(write_string)
     html.write(body_tag_end)
@@ -230,7 +250,9 @@ def make_HTML(num,html_file_dir):
 def read_config():
     scan_dir =""
     html_file_dir = ""
+
     with open("files\\config.conf","r+") as conf:
+
         settings = conf.readlines()
         for line in settings:
             if not "#" in line:
