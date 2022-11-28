@@ -264,11 +264,13 @@ def read_config(): # reads the config file and returns setting and directorys to
                     html_file_dir = line[len("site="):len(line)-1]
                 if "scantype=" in line:
                     scantype = line[len("scantype="):len(line)-1]
+                if "update=" in line:
+                    update = line[len("update="):len(line)-1]
 
 
 
 
-    return(scan_dir,html_file_dir,scantype)
+    return(scan_dir,html_file_dir,scantype,update)
 
 
 
@@ -278,16 +280,18 @@ def read_config(): # reads the config file and returns setting and directorys to
 
 
 
-def tmp():
-
-    files = [
-        ['https://raw.githubusercontent.com/thewaterdowngiraffe/Nas-Scanner/master/html/dupes.css','dupes-download.css'],             
-        ['https://raw.githubusercontent.com/thewaterdowngiraffe/Nas-Scanner/master/files/config.conf','config-downladed.conf']
-             ]
+def download_updates(html_file_dir,files): #using list provided download the file and name it/place  in correct directory
+    html_file_dir 
+    
+    
     for file_download in files:
-        
+        if not file_download[1] == '':
+            MYDIR = (file_download[1])
+            CHECK_FOLDER = os.path.isdir(MYDIR)
+            if not CHECK_FOLDER:
+                os.makedirs(MYDIR)
         r = requests.get(file_download[0], allow_redirects=True)
-        open(file_download[1], 'wb').write(r.content)
+        open(file_download[2], 'wb').write(r.content)
 
 
 
@@ -316,7 +320,8 @@ def tmp():
 #   things done:
 #       added light scan
 #       reduced ram usage when looking at html site
-#       config changes#
+#       config changes
+#       download updates/changes#
 
 
 
@@ -324,10 +329,23 @@ def tmp():
 
 
 
-rootdir, html_file_dir, scanType = read_config()
+rootdir, html_file_dir, scanType, update = read_config()
 print(scanType)
 
-tmp()
+
+
+## update/download update function 
+# dir to make must not be left blank please leave it as '' if there is no directory to make
+# [link, dir to make, filename/location]
+
+if update == 1:
+    files_too_download = [
+        ['https://raw.githubusercontent.com/thewaterdowngiraffe/Nas-Scanner/master/required/dupes.css','',html_file_dir + '\\d-dupes.css'],             
+        ['https://raw.githubusercontent.com/thewaterdowngiraffe/Nas-Scanner/master/required/config.conf','files','files\\config-downladed.conf'],
+        ['https://github.com/thewaterdowngiraffe/Nas-Scanner/raw/master/required/backup.png',html_file_dir + "\\images",html_file_dir + "\\images" + '\\backup.png']
+             ]
+
+    download_updates(html_file_dir,files_too_download)
 
 
 #   scan type is a number that will represent the type of scan
@@ -355,7 +373,5 @@ tmp()
 
 #make_HTML(scan_other(),html_file_dir) # uncomment to make html site no scan
 
-
-
-
+# changes made to the master files located in the required folder are synced accross all versions when they run 
 
