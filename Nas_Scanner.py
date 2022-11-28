@@ -1,17 +1,6 @@
-# Python program to find the SHA-1 message digest of a file
-
-# importing the hashlib module
-#from ctypes import Array
-#import numpy as np
 import hashlib
-#import glob
 import time
-#from operator import countOf
 import os
-
-
-
-
 
 
 def hash_file(filename):
@@ -32,30 +21,37 @@ def hash_file(filename):
            h.update(chunk)
 
    # return the hex representation of digest
-   return h.hexdigest()
+   return h.hexdigest() #hashfile, just works
 
 
-def dirGet(rootdir,file_count,finished,file_extensions,timeStart,html_file_dir):
+
+
+
+
+
+def dirGet(rootdir,file_count,finished,file_extensions,timeStart,html_file_dir,scanType):
     for file in os.listdir(rootdir):
         d = os.path.join(rootdir, file)
         if os.path.isdir(d):
-            finished = dirGet(d,file_count,finished,file_extensions,timeStart,html_file_dir)
-            finished += files(d,file_extensions)
+            finished = dirGet(d,file_count,finished,file_extensions,timeStart,html_file_dir,scanType)
+            finished += files(d,file_extensions,scanType)
             os.system('cls')
             print("current scan directory: {}\nScanning {} files. scan completed on {} files.\nPersentage finished: {}%".format( d, file_count, finished, round((finished/file_count)*100,2)))
             if (finished != 0):
                 print("time remaining {} min".format(  round((((time.perf_counter() - timeStart)*(file_count-finished)/finished))/60 ,2)     ))
-
                 with open("files\\status.run","w") as status:
-
                     status.write(str(round(((finished/file_count)*100),2)))
-                print("generating the html file")
-                make_HTML(scan_other(),html_file_dir)
-                print("gen finished")
+                if scanType == 0:
+                    print("generating the html file")
+                    make_HTML(scan_other(),html_file_dir)
+                    print("gen finished")
     return(finished)
-           
-def files(rootdir,file_extensions):
 
+
+
+
+
+def files(rootdir,file_extensions,scanType):
     count = 0 
     for x in os.listdir(rootdir):
         for i in file_extensions:
@@ -63,13 +59,15 @@ def files(rootdir,file_extensions):
                 count+=1
                 d = open("files\\Files dir.txt", "a")
                 h = open("files\\Files hash.txt", "a")
-
-                filehash = hash_file(rootdir+"\\"+x)
-                d.write(rootdir+"\\"+x+"\n")
-                h.write(filehash+"\n")
-                #print(i)
-
-                print("\t\t"+filehash)
+                if scanType == 0:
+                    filehash = hash_file(rootdir+"\\"+x)
+                    d.write(rootdir+"\\"+x+"\n")
+                    h.write(filehash+"\n")
+                    print("\t\t"+filehash)
+                if scanType == 1:
+                    d.write(rootdir+"\\"+x+"\n")
+                    h.write(x+"\n")
+                    print("\t\t"+x)
 
     return(count)
 
@@ -87,10 +85,9 @@ def dirGetfiles(rootdir,file_extensions,file_count):
     for file in os.listdir(rootdir):
         d = os.path.join(rootdir, file)
         if os.path.isdir(d):
-            #print(d)
             file_count = dirGetfiles(d,file_extensions,file_count)
             file_extensions, file_count = filesextentions(d,file_extensions,file_count)
-    return(file_count)
+    return(file_count) #walks through dir
 
 def filesextentions(rootdir,file_extensions,file_count):
     print(file_count)
@@ -98,13 +95,13 @@ def filesextentions(rootdir,file_extensions,file_count):
         o = 0
         count = 0
         k = 0
-        for i in x:
-            if i == ".":
-                count += 1
-        for i in x:
+        for i in x: # gets the number of periods in a extension
+            if i == ".": 
+                count += 1  
+        for i in x: 
             if i == "." :
                 k+=1
-            if i == "." and k == count and x[o+1] != "_" and not " " in x[o:]:
+            if i == "." and k == count and x[o+1] != "_" and not " " in x[o:] and ".DS_Store" not in x:
                 ext = x[o:]
                 file_count+=1
                 skip = 0
@@ -115,39 +112,40 @@ def filesextentions(rootdir,file_extensions,file_count):
                     #print(file_extensions)
                     file_extensions.append(ext)
             o+=1
-    return(file_extensions,file_count)
+    return(file_extensions,file_count) #gets file extentions and file count
 
 
 
 def file_prep():
-
     d = open("files\\Files dir.txt", "w+")
     h = open("files\\Files hash.txt", "w+")
     f = open("files\\dupes.csv", "w+")
-
+    # wipes files and resets
     f.close()
     d.close()
     h.close()
 
-def Run(rootdir,html_file_dir):
+def Run(rootdir,html_file_dir,scanType): # full hash 
     file_prep()
     file_extensions = []
     file_count = 0
     file_count = dirGetfiles(rootdir,file_extensions,file_count)
     print(file_extensions)
     print(file_count)
-    dirGet(rootdir,file_count,0,file_extensions,time.perf_counter(),html_file_dir)
+    dirGet(rootdir,file_count,0,file_extensions,time.perf_counter(),html_file_dir,scanType)
+    make_HTML(scan_other(),html_file_dir)
 
 
 
+    
 
-def scan_other():
 
+
+def scan_other(): # this is what makes the dupes.csv file, the html file requires this
     f = open("files\\dupes.csv", "w")
     f.close
     d = open("files\\Files dir.txt", "r")
     h = open("files\\Files hash.txt", "r")
-
     Lines = h.readlines()
     Lines_dir = d.readlines()
     flaged = 0
@@ -173,6 +171,7 @@ def scan_other():
                         f.write(Lines_dir[y][:len(Lines_dir[y])-1]+",\n")
                         if count != 1:
                             dupe+=1
+                        f.close
                         #print(Lines[x])
                         #print(Lines[y])
                         #print("\n")
@@ -187,59 +186,47 @@ def scan_other():
 
 
 def make_HTML(num,html_file_dir):
-
+    #file required for generation
     status = open("files\\status.run","r")
     html = open(html_file_dir, "w+")
     csv = open("files\\dupes.csv", "r")
 
     Lines = status.readlines()
-
-
-
-    string = '"  onerror=' +"'this.src = " +'"./images/backup.png"' + " loading='lazy'  '>"
+    string = '"  onerror=' +"'this.src = " +'"./images/backup.png"' + "' loading='lazy' alt = 'image can not be displayed' >"
     #print(string)
-
     img_tag = ['<img src="',string  ]
-
     body_tag_start = '<!DOCTYPE html>\n<html lang="en">\n\t<head>\n\t\t<meta charset="UTF-8">\n\t\t<meta name="viewport" content="width=device-width, initial-scale=1">\n\t\t<!--  Author: Keegan Andrus https://github.com/thewaterdowngiraffe/Nas-Scanner -->\n\t\t<title>Duplicated images</title>\n\t\t<link rel="stylesheet" href="dupes.css">\n\t\t<style type="text/css">\n\t\t\t* {\n\t\t\t\tmargin: 0;\n\t\t\t\tpadding: 0;\n\t\t\t}\n\t\t</style>\n\t</head>\n\t<body>\n'
     body_tag_end = '\n\t\t</div>\n\t</body>\n</html>'
-
-
     html.write(body_tag_start)
     count = 0
     divs = 0
+    div_limit = 35
     html.write('\t\t<div class = "title">\n\t\t\t<h1>{} duplicates flagged for viewing</h1>\n\t\t\t<p>scan is at {}%</p>\n'.format(num,Lines[0]))
     write_string = ""
-    
-
     for imgs in csv:
         if imgs == "\n":
             if divs == 0:
                 print("generating html page")
             else:
-                if divs <= 30:
-
+                if divs <= div_limit:
                     html.write('\n\t\t</div>\n\n\t\t<div class="group">\n\t\t\t<h2>group contains {} duplicates</h2>\n'.format(count))
-                if divs == 31:
-                    html.write('\n\t\t</div>\n\n\t\t<div class="group">\n\t\t\t<h2> to many Duplicates, to prevent website crashes, no further images will be loaded.<br> to load more images please resolve images located above</h2>\n')
-
+                if divs == div_limit+1:
+                    html.write('\n\t\t</div>\n\n\t\t<div class="group">\n\t\t\t<h2> to many Duplicates, to prevent website crashes, no further images will be loaded.<br> to load more images please resolve images located above<br>maximum of {} can be displayed at a time</h2>\n'.format(div_limit))
             html.write(write_string) 
             write_string = ""
-            
             #write and reset the html string that goes to the file
-
             divs+=1
             count = 0
         else:
             count+=1
-            if divs <= 30:
-
+            if divs <= div_limit:
                 write_string += '\n\t\t\t<a href="{}"  target="_blank" >{}{}{}</a>'.format(imgs[:len(imgs)-2],img_tag[0],imgs[:len(imgs)-2],img_tag[1])
-
-    
     html.write(write_string)
     html.write(body_tag_end)
 
+    csv.close
+    html.close
+    status.close
 
 
 
@@ -247,12 +234,10 @@ def make_HTML(num,html_file_dir):
 
 
 
-def read_config():
+def read_config(): # reads the config file and returns setting and directorys to be used
     scan_dir =""
     html_file_dir = ""
-
     with open("files\\config.conf","r+") as conf:
-
         settings = conf.readlines()
         for line in settings:
             if not "#" in line:
@@ -262,7 +247,6 @@ def read_config():
                 if "site=" in line:
                     #print(line[5:len(line)-1])
                     html_file_dir = line[5:len(line)-1]
-
     return(scan_dir,html_file_dir)
 
 
@@ -289,25 +273,42 @@ def read_config():
 
 
 
-rootdir = '//192.168.2.194/nasdrive/parents'
-rootdir = '\\\\192.168.2.194\\nasdrive'
-rootdir = '\\\\192.168.2.194\\nasdrive\\parents\\images\\all pictures\\sean\\2020'
-rootdir = '\\\\192.168.2.194\\nasdrive\\tmp'
 
 
-rootdir,html_file_dir = read_config()
 
 
 
 
 
-t =  time.perf_counter()
-Run(rootdir,html_file_dir)
-print(time.perf_counter() - t)
+rootdir,html_file_dir = read_config()
+scanType =1 
+#   scan type is a number that will represent the type of scan
+#   0 is full has
+#   1 is light (looks at file names nothing else)
+#   #
 
-#scan()
+
+Run(rootdir,html_file_dir,scanType) #hard hash
+
+# --light hash--
+# get directory of all files  -- log to file dir.txt
+# scan list of files and extract names -- store file names in the hash file
+# look for exact matches  scan_other() function will work 
+# send list of matches to CSV
+# make html  
+
+#   --function list--
+#   make_HTML(scan_other(),html_file_dir)
+#   rootdir,html_file_dir = read_config()
+#   Run(rootdir,html_file_dir,scanType) #hard hash
+#   
+
+
+
+
+
 make_HTML(scan_other(),html_file_dir)
-## GET ALL file types 
+
 
 
 
