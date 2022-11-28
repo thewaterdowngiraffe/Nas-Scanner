@@ -1,7 +1,7 @@
 import hashlib
 import time
 import os
-
+import requests
 
 def hash_file(filename):
    """"This function returns the SHA-1 hash
@@ -24,11 +24,6 @@ def hash_file(filename):
    return h.hexdigest() #hashfile, just works
 
 
-
-
-
-
-
 def dirGet(rootdir,file_count,finished,file_extensions,timeStart,html_file_dir,scanType):
     for file in os.listdir(rootdir):
         d = os.path.join(rootdir, file)
@@ -46,8 +41,6 @@ def dirGet(rootdir,file_count,finished,file_extensions,timeStart,html_file_dir,s
                     make_HTML(scan_other(),html_file_dir)
                     print("gen finished")
     return(finished)
-
-
 
 
 
@@ -81,15 +74,14 @@ def files(rootdir,file_extensions,scanType):
 #   must be .type 
 
 
-def dirGetfiles(rootdir,file_extensions,file_count):
+def dirGetfiles(rootdir,file_extensions,file_count): 
     for file in os.listdir(rootdir):
         d = os.path.join(rootdir, file)
         if os.path.isdir(d):
             file_count = dirGetfiles(d,file_extensions,file_count)
             file_extensions, file_count = filesextentions(d,file_extensions,file_count)
     return(file_count) #walks through dir
-
-def filesextentions(rootdir,file_extensions,file_count):
+def filesextentions(rootdir,file_extensions,file_count):  
     print(file_count)
     for x in os.listdir(rootdir):
         o = 0
@@ -112,7 +104,7 @@ def filesextentions(rootdir,file_extensions,file_count):
                     #print(file_extensions)
                     file_extensions.append(ext)
             o+=1
-    return(file_extensions,file_count) #gets file extentions and file count
+    return(file_extensions,file_count) ##locates and returns all file extentions within a rule set and total files
 
 
 
@@ -124,6 +116,7 @@ def file_prep():
     f.close()
     d.close()
     h.close()
+    return # wipes files that are hard coded
 
 def Run(rootdir,html_file_dir,scanType): # full hash 
     file_prep()
@@ -134,10 +127,7 @@ def Run(rootdir,html_file_dir,scanType): # full hash
     print(file_count)
     dirGet(rootdir,file_count,0,file_extensions,time.perf_counter(),html_file_dir,scanType)
     make_HTML(scan_other(),html_file_dir)
-
-
-
-    
+    return # this is what makes the dupes.csv file, the html file requires this
 
 
 
@@ -172,65 +162,55 @@ def scan_other(): # this is what makes the dupes.csv file, the html file require
                         if count != 1:
                             dupe+=1
                         f.close
-                        #print(Lines[x])
-                        #print(Lines[y])
-                        #print("\n")
     h.close
     d.close
     print(flaged)
     print(dupe)
-    return(flaged)
+    return(flaged)# this is what makes the dupes.csv file, the html file requires this
 
 
 
-def make_HTML(num,html_file_dir):
+def make_HTML(num,html_file_dir): # make html pages from csv content 
     html_file_dir = html_file_dir +"\\"
     status = open("files\\status.run","r")
     csv = open("files\\dupes.csv", "r")
-    Lines = status.readlines()
+    Lines = status.readlines() #reads the CSV file
     
     dir_cap = 35
+    pages = (num//dir_cap) +1 # max numebr of pages
+    pagenum = 0 #current page
 
-    pages = (num//dir_cap) +1
-    pagenum = 0
-
-
-
-
-    
+    ##html stuff, need to clean up this section 
     string = '"  onerror=' +"'this.src = " +'"./images/backup.png"' + "' loading='lazy' alt = 'image can not be displayed' >"
     img_tag = ['<img src="',string  ]
     body_tag_start = '<!DOCTYPE html>\n<html lang="en">\n\t<head>\n\t\t<meta charset="UTF-8">\n\t\t<meta name="viewport" content="width=device-width, initial-scale=1">\n\t\t<!--  Author: Keegan Andrus https://github.com/thewaterdowngiraffe/Nas-Scanner -->\n\t\t<title>Duplicated images</title>\n\t\t<link rel="stylesheet" href="dupes.css">\n\t\t<style type="text/css">\n\t\t\t* {\n\t\t\t\tmargin: 0;\n\t\t\t\tpadding: 0;\n\t\t\t}\n\t\t</style>\n\t</head>\n\t<body>\n'
     body_tag_end = '\n\t\t</div>\n\t</body>\n</html>'
-     
-        
-        
+
     count = 0
     divs = 0
     html = open(html_file_dir + "page0.html", "w+")
 
     write_string = ""
+
+    ##scans through CSV file looking for a new line, when finding a new line a div will be created and all images in that section will be placed in that div.
     for imgs in csv:
 
 
-        if divs%dir_cap == 0:
+        if divs%dir_cap == 0: #make new file
             filename =html_file_dir + "page{}.html".format(pagenum+1)
             html = open(filename, "w+")
-                
-            html.write(body_tag_start)
+            html.write(body_tag_start) 
         
 
-            ###
+            ### makes nav bar
             if pagenum == 0:
                 html.write('\t<div id="navsection">\n\t\t<header>\n\t\t\t<nav>\n\t\t\t\t<ul>\n\t\t\t\t\t<li><a href="./page{}.html">next</a></li>\n\t\t\t\t</ul>\n\t\t\t</nav>\n\t\t</header>\n\t</div>\n'.format(pagenum+2))
             elif pagenum+1 == pages:
                 html.write('\t<div id="navsection">\n\t\t<header>\n\t\t\t<nav>\n\t\t\t\t<ul>\n\t\t\t\t\t<li><a href="./page{}.html">back</a></li>\n\t\t\t\t\t<li><a href="./page0.html">back to start</a></li>\n\t\t\t\t</ul>\n\t\t\t</nav>\n\t\t</header>\n\t</div>\n'.format(pagenum))
             else:
                 html.write('\t<div id="navsection">\n\t\t<header>\n\t\t\t<nav>\n\t\t\t\t<ul>\n\t\t\t\t\t<li><a href="./page{}.html">back</a></li>\n\t\t\t\t\t<li><a href="./page{}.html">next</a></li>\n\t\t\t\t</ul>\n\t\t\t</nav>\n\t\t</header>\n\t</div>\n'.format(pagenum,pagenum+2))
-            ###
+            ### start of page
             html.write('\t\t<div class = "title">\n\t\t\t<h1>{} duplicates flagged for viewing</h1>\n\t\t\t<p>scan is at {}%</p>\n\n\t\t</div>\n'.format(num,Lines[0]))
-        
-
 
 
 
@@ -247,28 +227,21 @@ def make_HTML(num,html_file_dir):
             #write and reset the html string that goes to the file
             divs+=1
             count = 0
+
         if not imgs == "\n":
             count+=1
             if divs <= dir_cap:
                 write_string += '\n\t\t\t<a href="{}"  target="_blank" >{}{}{}</a>'.format(imgs[:len(imgs)-2],img_tag[0],imgs[:len(imgs)-2],img_tag[1])
     
-        if divs%35 == 0 and imgs == "\n":
+        if divs%35 == 0 and imgs == "\n": #finish file ready for next one
             pagenum +=1
             divs =0
             html.write(write_string)
             html.write(body_tag_end)
+    return #this is the html file(s) generator
 
 
 
-        ###
-
-
-
-
-
-
-
-        #back next-page home
 
 
 
@@ -285,11 +258,37 @@ def read_config(): # reads the config file and returns setting and directorys to
             if not "#" in line:
                 if "scan=" in line:
                     #print(line[5:len(line)-1])
-                    scan_dir = line[5:len(line)-1]
+                    scan_dir = line[len("scan="):len(line)-1]
                 if "site=" in line:
                     #print(line[5:len(line)-1])
-                    html_file_dir = line[5:len(line)-1]
-    return(scan_dir,html_file_dir)
+                    html_file_dir = line[len("site="):len(line)-1]
+                if "scantype=" in line:
+                    scantype = line[len("scantype="):len(line)-1]
+
+
+
+
+    return(scan_dir,html_file_dir,scantype)
+
+
+
+
+
+
+
+
+
+def tmp():
+
+    files = [
+        ['https://raw.githubusercontent.com/thewaterdowngiraffe/Nas-Scanner/master/html/dupes.css','dupes-download.css'],             
+        ['https://raw.githubusercontent.com/thewaterdowngiraffe/Nas-Scanner/master/files/config.conf','config-downladed.conf']
+             ]
+    for file_download in files:
+        
+        r = requests.get(file_download[0], allow_redirects=True)
+        open(file_download[1], 'wb').write(r.content)
+
 
 
 ## things to add
@@ -314,6 +313,10 @@ def read_config(): # reads the config file and returns setting and directorys to
 
 
 
+#   things done:
+#       added light scan
+#       reduced ram usage when looking at html site
+#       config changes#
 
 
 
@@ -321,16 +324,19 @@ def read_config(): # reads the config file and returns setting and directorys to
 
 
 
+rootdir, html_file_dir, scanType = read_config()
+print(scanType)
 
-rootdir,html_file_dir = read_config()
-scanType =1 
+tmp()
+
+
 #   scan type is a number that will represent the type of scan
 #   0 is full has
 #   1 is light (looks at file names nothing else)
 #   #
 
 
-#Run(rootdir,html_file_dir,scanType) #hard hash
+#Run(rootdir,html_file_dir,scanType) #  uncomment to run 
 
 # --light hash--
 # get directory of all files  -- log to file dir.txt
@@ -346,10 +352,8 @@ scanType =1
 #   
 
 
-make_HTML(scan_other(),html_file_dir)
 
-
-#make_HTML(scan_other(),html_file_dir)
+#make_HTML(scan_other(),html_file_dir) # uncomment to make html site no scan
 
 
 
