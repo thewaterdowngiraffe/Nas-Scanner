@@ -183,50 +183,92 @@ def scan_other(): # this is what makes the dupes.csv file, the html file require
 
 
 
-
-
 def make_HTML(num,html_file_dir):
-    #file required for generation
+    html_file_dir = html_file_dir +"\\"
     status = open("files\\status.run","r")
-    html = open(html_file_dir, "w+")
     csv = open("files\\dupes.csv", "r")
-
     Lines = status.readlines()
+    
+    dir_cap = 35
+
+    pages = (num//dir_cap) +1
+    pagenum = 0
+
+
+
+
+    
     string = '"  onerror=' +"'this.src = " +'"./images/backup.png"' + "' loading='lazy' alt = 'image can not be displayed' >"
-    #print(string)
     img_tag = ['<img src="',string  ]
     body_tag_start = '<!DOCTYPE html>\n<html lang="en">\n\t<head>\n\t\t<meta charset="UTF-8">\n\t\t<meta name="viewport" content="width=device-width, initial-scale=1">\n\t\t<!--  Author: Keegan Andrus https://github.com/thewaterdowngiraffe/Nas-Scanner -->\n\t\t<title>Duplicated images</title>\n\t\t<link rel="stylesheet" href="dupes.css">\n\t\t<style type="text/css">\n\t\t\t* {\n\t\t\t\tmargin: 0;\n\t\t\t\tpadding: 0;\n\t\t\t}\n\t\t</style>\n\t</head>\n\t<body>\n'
     body_tag_end = '\n\t\t</div>\n\t</body>\n</html>'
-    html.write(body_tag_start)
+     
+        
+        
     count = 0
     divs = 0
-    div_limit = 35
-    html.write('\t\t<div class = "title">\n\t\t\t<h1>{} duplicates flagged for viewing</h1>\n\t\t\t<p>scan is at {}%</p>\n'.format(num,Lines[0]))
+    html = open(html_file_dir + "page0.html", "w+")
+
     write_string = ""
     for imgs in csv:
-        if imgs == "\n":
-            if divs == 0:
-                print("generating html page")
+
+
+        if divs%dir_cap == 0:
+            filename =html_file_dir + "page{}.html".format(pagenum+1)
+            html = open(filename, "w+")
+                
+            html.write(body_tag_start)
+        
+
+            ###
+            if pagenum == 0:
+                html.write('\t<div id="navsection">\n\t\t<header>\n\t\t\t<nav>\n\t\t\t\t<ul>\n\t\t\t\t\t<li><a href="./page{}.html">next</a></li>\n\t\t\t\t</ul>\n\t\t\t</nav>\n\t\t</header>\n\t</div>\n'.format(pagenum+2))
+            elif pagenum+1 == pages:
+                html.write('\t<div id="navsection">\n\t\t<header>\n\t\t\t<nav>\n\t\t\t\t<ul>\n\t\t\t\t\t<li><a href="./page{}.html">back</a></li>\n\t\t\t\t\t<li><a href="./page0.html">back to start</a></li>\n\t\t\t\t</ul>\n\t\t\t</nav>\n\t\t</header>\n\t</div>\n'.format(pagenum))
             else:
-                if divs <= div_limit:
+                html.write('\t<div id="navsection">\n\t\t<header>\n\t\t\t<nav>\n\t\t\t\t<ul>\n\t\t\t\t\t<li><a href="./page{}.html">back</a></li>\n\t\t\t\t\t<li><a href="./page{}.html">next</a></li>\n\t\t\t\t</ul>\n\t\t\t</nav>\n\t\t</header>\n\t</div>\n'.format(pagenum,pagenum+2))
+            ###
+            html.write('\t\t<div class = "title">\n\t\t\t<h1>{} duplicates flagged for viewing</h1>\n\t\t\t<p>scan is at {}%</p>\n\n\t\t</div>\n'.format(num,Lines[0]))
+        
+
+
+
+
+        if imgs == "\n" or divs%35 == 0:
+            if divs == 0:
+                print("generating html page{}".format(pagenum+1))
+            else:
+                if divs <= dir_cap:
                     html.write('\n\t\t</div>\n\n\t\t<div class="group">\n\t\t\t<h2>group contains {} duplicates</h2>\n'.format(count))
-                if divs == div_limit+1:
-                    html.write('\n\t\t</div>\n\n\t\t<div class="group">\n\t\t\t<h2> to many Duplicates, to prevent website crashes, no further images will be loaded.<br> to load more images please resolve images located above<br>maximum of {} can be displayed at a time</h2>\n'.format(div_limit))
+                if divs == dir_cap+1:
+                    html.write('\n\t\t</div>\n\n\t\t<div class="group">\n\t\t\t<h2> to many Duplicates, to prevent website crashes, no further images will be loaded.<br> to load more images please resolve images located above<br>maximum of {} can be displayed at a time</h2>\n'.format(dir_cap))
             html.write(write_string) 
             write_string = ""
             #write and reset the html string that goes to the file
             divs+=1
             count = 0
-        else:
+        if not imgs == "\n":
             count+=1
-            if divs <= div_limit:
+            if divs <= dir_cap:
                 write_string += '\n\t\t\t<a href="{}"  target="_blank" >{}{}{}</a>'.format(imgs[:len(imgs)-2],img_tag[0],imgs[:len(imgs)-2],img_tag[1])
-    html.write(write_string)
-    html.write(body_tag_end)
+    
+        if divs%35 == 0 and imgs == "\n":
+            pagenum +=1
+            divs =0
+            html.write(write_string)
+            html.write(body_tag_end)
 
-    csv.close
-    html.close
-    status.close
+
+
+        ###
+
+
+
+
+
+
+
+        #back next-page home
 
 
 
@@ -288,7 +330,7 @@ scanType =1
 #   #
 
 
-Run(rootdir,html_file_dir,scanType) #hard hash
+#Run(rootdir,html_file_dir,scanType) #hard hash
 
 # --light hash--
 # get directory of all files  -- log to file dir.txt
@@ -304,10 +346,10 @@ Run(rootdir,html_file_dir,scanType) #hard hash
 #   
 
 
-
-
-
 make_HTML(scan_other(),html_file_dir)
+
+
+#make_HTML(scan_other(),html_file_dir)
 
 
 
