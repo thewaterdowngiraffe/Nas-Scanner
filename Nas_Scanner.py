@@ -280,10 +280,9 @@ def read_config(): # reads the config file and returns setting and directorys to
 
 
 
-def download_updates(html_file_dir,files): #using list provided download the file and name it/place  in correct directory
-    html_file_dir 
-    
-    
+def download_updates(files): #using list provided download the file and name it/place  in correct directory
+    print("starting update")
+    print (len(files))
     for file_download in files:
         if not file_download[1] == '':
             MYDIR = (file_download[1])
@@ -292,6 +291,7 @@ def download_updates(html_file_dir,files): #using list provided download the fil
                 os.makedirs(MYDIR)
         r = requests.get(file_download[0], allow_redirects=True)
         open(file_download[2], 'wb').write(r.content)
+    print("update finished")
 
 
 
@@ -330,7 +330,7 @@ def download_updates(html_file_dir,files): #using list provided download the fil
 
 
 rootdir, html_file_dir, scanType, update = read_config()
-print(scanType)
+print(update)
 
 
 
@@ -338,14 +338,16 @@ print(scanType)
 # dir to make must not be left blank please leave it as '' if there is no directory to make
 # [link, dir to make, filename/location]
 
-if update == 1:
+if update == '1':
+    
     files_too_download = [
-        ['https://raw.githubusercontent.com/thewaterdowngiraffe/Nas-Scanner/master/required/dupes.css','',html_file_dir + '\\d-dupes.css'],             
-        ['https://raw.githubusercontent.com/thewaterdowngiraffe/Nas-Scanner/master/required/config.conf','files','files\\config-downladed.conf'],
+        ['https://raw.githubusercontent.com/thewaterdowngiraffe/Nas-Scanner/master/required/dupes.css','',html_file_dir + '\\dupes.css'],             
+        ['https://raw.githubusercontent.com/thewaterdowngiraffe/Nas-Scanner/master/required/config.conf','files','files\\config.conf'],
         ['https://github.com/thewaterdowngiraffe/Nas-Scanner/raw/master/required/backup.png',html_file_dir + "\\images",html_file_dir + "\\images" + '\\backup.png']
              ]
 
-    download_updates(html_file_dir,files_too_download)
+    download_updates(files_too_download)
+    
 
 
 #   scan type is a number that will represent the type of scan
