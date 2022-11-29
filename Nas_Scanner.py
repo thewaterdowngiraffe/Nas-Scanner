@@ -1,8 +1,11 @@
 import hashlib
 import time
 import os
+import io
 import requests
-
+import PySimpleGUI as sg
+import os.path
+from PIL import Image
 def hash_file(filename):
    """"This function returns the SHA-1 hash
    of the file passed into it"""
@@ -22,6 +25,9 @@ def hash_file(filename):
 
    # return the hex representation of digest
    return h.hexdigest() #hashfile, just works
+
+
+
 
 
 def dirGet(rootdir,file_count,finished,file_extensions,timeStart,html_file_dir,scanType):
@@ -52,15 +58,19 @@ def files(rootdir,file_extensions,scanType):
                 count+=1
                 d = open("files\\Files dir.txt", "a")
                 h = open("files\\Files hash.txt", "a")
-                if scanType == 0:
+                if scanType == '0':
                     filehash = hash_file(rootdir+"\\"+x)
                     d.write(rootdir+"\\"+x+"\n")
                     h.write(filehash+"\n")
                     print("\t\t"+filehash)
-                if scanType == 1:
+                if scanType == '1':
                     d.write(rootdir+"\\"+x+"\n")
                     h.write(x+"\n")
                     print("\t\t"+x)
+                d.close
+                h.close
+
+
 
     return(count)
 
@@ -127,11 +137,12 @@ def Run(rootdir,html_file_dir,scanType): # full hash
     print(file_count)
     dirGet(rootdir,file_count,0,file_extensions,time.perf_counter(),html_file_dir,scanType)
     make_HTML(scan_other(),html_file_dir)
-    return # this is what makes the dupes.csv file, the html file requires this
+     # this is what makes the dupes.csv file, the html file requires this
 
 
 
 def scan_other(): # this is what makes the dupes.csv file, the html file requires this
+    print("scanning for duplicates")
     f = open("files\\dupes.csv", "w")
     f.close
     d = open("files\\Files dir.txt", "r")
@@ -141,6 +152,9 @@ def scan_other(): # this is what makes the dupes.csv file, the html file require
     flaged = 0
     dupe = 0
     for x in range(len(Lines)):
+        if x%100 == 0:
+            print(x/len(Lines))
+
         skip = 0
         for y in range(x):
             if Lines[x] == Lines[y]:
@@ -164,8 +178,10 @@ def scan_other(): # this is what makes the dupes.csv file, the html file require
                         f.close
     h.close
     d.close
+    print("scan finished")
     print(flaged)
     print(dupe)
+
     return(flaged)# this is what makes the dupes.csv file, the html file requires this
 
 
@@ -174,6 +190,7 @@ def make_HTML(num,html_file_dir): # make html pages from csv content
     html_file_dir = html_file_dir +"\\"
     status = open("files\\status.run","r")
     csv = open("files\\dupes.csv", "r")
+    del_display = open("files\\File duplicates.txt", "w+")
     Lines = status.readlines() #reads the CSV file
     
     dir_cap = 35
@@ -232,22 +249,16 @@ def make_HTML(num,html_file_dir): # make html pages from csv content
             count+=1
             if divs <= dir_cap:
                 write_string += '\n\t\t\t<a href="{}"  target="_blank" >{}{}{}</a>'.format(imgs[:len(imgs)-2],img_tag[0],imgs[:len(imgs)-2],img_tag[1])
+                del_display.write(imgs[:len(imgs)-2] + '\n')
     
         if divs%35 == 0 and imgs == "\n": #finish file ready for next one
             pagenum +=1
             divs =0
             html.write(write_string)
             html.write(body_tag_end)
+    del_display.close
+
     return #this is the html file(s) generator
-
-
-
-
-
-
-
-
-
 
 def read_config(): # reads the config file and returns setting and directorys to be used
     scan_dir =""
@@ -267,39 +278,55 @@ def read_config(): # reads the config file and returns setting and directorys to
                 if "update=" in line:
                     update = line[len("update="):len(line)-1]
 
-
-
-
     return(scan_dir,html_file_dir,scantype,update)
 
-
-
-
-
-
-
-
-
 def download_updates(files): #using list provided download the file and name it/place  in correct directory
-    print("starting update")
-    print (len(files))
+    print("starting update\ndownloading {} files".format(len(files)))
+    count = 0
     for file_download in files:
-        if not file_download[1] == '':
-            MYDIR = (file_download[1])
-            CHECK_FOLDER = os.path.isdir(MYDIR)
-            if not CHECK_FOLDER:
-                os.makedirs(MYDIR)
-        r = requests.get(file_download[0], allow_redirects=True)
-        open(file_download[2], 'wb').write(r.content)
+        if not "config" in file_download[2]:
+
+            print(file_download[2])
+            count +=1
+            print("files downloaded {}/{}".format(count,len(files)))
+            if not file_download[1] == '':
+                MYDIR = (file_download[1])
+                CHECK_FOLDER = os.path.isdir(MYDIR)
+                if not CHECK_FOLDER:
+                    os.makedirs(MYDIR)
+            r = requests.get(file_download[0], allow_redirects=True)    
+            open(file_download[2], 'wb').write(r.content)
+        
+        elif os.path.isfile(file_download[2]) == False:
+            print(file_download[2])
+            count +=1
+            print("files downloaded {}/{}".format(count,len(files)))
+            if not file_download[1] == '':
+                MYDIR = (file_download[1])
+                CHECK_FOLDER = os.path.isdir(MYDIR)
+                if not CHECK_FOLDER:
+                    os.makedirs(MYDIR)
+            r = requests.get(file_download[0], allow_redirects=True)    
+            open(file_download[2], 'wb').write(r.content)
+        else:
+            print("skipping {}".format(file_download[2]))
+            count +=1
+            print("files downloaded {}/{}".format(count,len(files)))
+
     print("update finished")
 
 
 
+        
+        
+        #f.write(new_Str)
+
+    
+
 ## things to add
-# light weight scan looks for duplicate names
+# light weight scan looks for duplicate names -
 # mid looks at metadata
 # heavy looks at hash 
-# display time to finish
 # open file for viewing at start of run 
 # reduce ram used when loading page
 # display file type bellow image
@@ -323,14 +350,18 @@ def download_updates(files): #using list provided download the file and name it/
 #       config changes
 #       download updates/changes#
 
+#   file metadata will be a pain in the side 
+
+
+try:
+    rootdir, html_file_dir, scanType, update = read_config()
+except :
+    files_too_download = [['https://raw.githubusercontent.com/thewaterdowngiraffe/Nas-Scanner/master/required/config.conf','files','files\\config.conf'],]
+    download_updates(files_too_download)
+    updates = 1
 
 
 
-
-
-
-rootdir, html_file_dir, scanType, update = read_config()
-print(update)
 
 
 
@@ -341,7 +372,7 @@ print(update)
 if update == '1':
     
     files_too_download = [
-        ['https://raw.githubusercontent.com/thewaterdowngiraffe/Nas-Scanner/master/required/dupes.css','',html_file_dir + '\\dupes.css'],             
+        ['https://raw.githubusercontent.com/thewaterdowngiraffe/Nas-Scanner/master/required/dupes.css',html_file_dir,html_file_dir + '\\dupes.css'],             
         ['https://raw.githubusercontent.com/thewaterdowngiraffe/Nas-Scanner/master/required/config.conf','files','files\\config.conf'],
         ['https://github.com/thewaterdowngiraffe/Nas-Scanner/raw/master/required/backup.png',html_file_dir + "\\images",html_file_dir + "\\images" + '\\backup.png']
              ]
@@ -350,13 +381,16 @@ if update == '1':
     
 
 
+
+
 #   scan type is a number that will represent the type of scan
 #   0 is full has
 #   1 is light (looks at file names nothing else)
 #   #
 
 
-#Run(rootdir,html_file_dir,scanType) #  uncomment to run 
+Run(rootdir,html_file_dir,scanType) #  uncomment to run 
+
 
 # --light hash--
 # get directory of all files  -- log to file dir.txt
@@ -377,3 +411,36 @@ if update == '1':
 
 # changes made to the master files located in the required folder are synced accross all versions when they run 
 
+# img_viewer.py
+
+
+
+# First the window layout in 2 columns
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+'''
+# taken from https://realpython.com/pysimplegui-python/
+'''
