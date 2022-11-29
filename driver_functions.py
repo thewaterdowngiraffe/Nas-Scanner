@@ -1,0 +1,118 @@
+from datetime import datetime
+import platform
+import hashlib
+import sys
+import os
+
+def error_log(error):
+    with open("Error.log.csv", "a+") as log_file:
+        time = datetime.utcnow()
+        log_file.write(str(error) + ","+ str(time)+","+str(platform.system())+","+str(platform.release())+","+str(platform.version())+","+str(platform.processor())+"\n")
+    return()
+
+def hash_file(filename):
+    try:
+        h = hashlib.sha1()
+        with open(filename,'rb') as file:
+            chunk = 0
+            while chunk != b'':
+                chunk = file.read(1024)
+                h.update(chunk)
+        return h.hexdigest()
+    except:
+        error_log(sys.exc_info()[0])
+        return("error_")
+
+def read_config(): # reads the config file and returns setting and directorys to be used
+    scan_dir =""
+    html_file_dir = ""
+    with open("files\\config.conf","r+") as conf:
+        settings = conf.readlines()
+        for line in settings:
+            if not "#" in line:
+                if "scan=" in line:
+                    scan_dir = line[len("scan="):len(line)-1]              
+                if "site=" in line:
+                    html_file_dir = line[len("site="):len(line)-1]               
+                if "scantype=" in line:
+                    scantype = line[len("scantype="):len(line)-1]
+                if "update=" in line:
+                    update = line[len("update="):len(line)-1]
+    return(scan_dir,html_file_dir,scantype,update)
+
+def file_prep():
+    d = open("files\\Files dir.txt", "w+")
+    h = open("files\\Files hash.txt", "w+")
+    f = open("files\\dupes.csv", "w+")
+    # wipes files and resets
+    f.close()
+    d.close()
+    h.close()
+    return # wipes files that are hard coded
+
+def loading(current,max_val,status):
+    fin_bar = ""
+    fin = int(round(current/max_val*100,0))
+    for x in range(fin):
+        fin_bar += "\u25A0"
+    for x in range(100 - fin):
+        fin_bar +="*"
+    retunr_str = "\r{}[{}]: {}%".format(status, fin_bar,fin) 
+    return(retunr_str)
+
+def html_conf_scan(): # reads the config file and returns setting and directorys to be used
+    with open("files\\HTML.conf","r+") as conf:
+        settings = conf.readlines()
+        for line in settings:
+            if not "#" in line:
+                if "StartTag=" in line:
+                    StartTag = line[len("StartTag="):len(line)-1].replace("\\n","\n").replace("\\t","\t")
+                if "EndTag=" in line:
+                    EndTag = line[len("EndTag="):len(line)-1].replace("\\n","\n").replace("\\t","\t")
+                if "nav0=" in line:
+                    nav0 = line[len("nav0="):len(line)-1].replace("\\n","\n").replace("\\t","\t")
+                if "nav1=" in line:
+                    nav1 = line[len("nav1="):len(line)-1].replace("\\n","\n").replace("\\t","\t")
+                if "nav2=" in line:
+                    nav2 = line[len("nav2="):len(line)-1].replace("\\n","\n").replace("\\t","\t")
+                if "navclose=" in line:
+                    navclose = line[len("navclose="):len(line)-1].replace("\\n","\n").replace("\\t","\t")
+                if "IMG_open=" in line:
+                    IMG_open = line[len("IMG_open="):len(line)-1].replace("\\n","\n").replace("\\t","\t")
+                if "IMG_close=" in line:
+                    IMG_close = line[len("IMG_close="):len(line)-1].replace("\\n","\n").replace("\\t","\t")
+                if "div=" in line:
+                    div = line[len("div="):len(line)-1].replace("\\n","\n").replace("\\t","\t")
+
+    return(StartTag,EndTag,nav0,nav1,nav2,navclose,IMG_open,IMG_close,div)
+
+def html_writer_top(file_html,pagenum,pages,num,Line):
+    StartTag,EndTag,nav0,nav1,nav2,navclose,IMG_open,IMG_close,div = html_conf_scan()
+    file_html.write(StartTag)
+    if pagenum == 0:
+        file_html.write(nav0.replace("{}",str(pagenum+2)))
+    elif pagenum+1 == pages:
+        file_html.write(nav1.replace("{}",str(pagenum)))
+    else:
+        file_html.write(nav2.replace("{1}",str(pagenum)).replace("{2}",str(pagenum+2)))
+    file_html.write(navclose.replace("{1}",str(num)).replace("{2}",str(Line)))
+    return
+
+def html_writer_img(content):
+    StartTag,EndTag,nav0,nav1,nav2,navclose,IMG_open,IMG_close,div = html_conf_scan()
+    string = IMG_open.replace("{}",content) +content+IMG_close
+    return(string)
+
+def html_writer_div(file_html,content):
+    StartTag,EndTag,nav0,nav1,nav2,navclose,IMG_open,IMG_close,div = html_conf_scan()
+    file_html.write(div.replace("{}",str(content)))
+    return()
+
+def html_writer_bottom(file_html):
+        StartTag,EndTag,nav0,nav1,nav2,navclose,IMG_open,IMG_close,div = html_conf_scan()
+        file_html.write(EndTag)
+
+def clean_up():
+    os.remove("files\\Files dir.txt")
+    os.remove("files\\Files hash.txt")
+    os.remove("files\\status.run")
