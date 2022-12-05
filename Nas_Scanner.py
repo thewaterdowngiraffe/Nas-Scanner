@@ -1,6 +1,7 @@
 
 import time
 import os
+import io
 import requests
 import os.path
 import time
@@ -72,6 +73,8 @@ def files(rootdir,file_extensions,scanType):
                     print("\t\t"+x)
                 d.close
                 h.close
+
+
     return(count)
 
 
@@ -160,6 +163,7 @@ def scan_other(): # this is what makes the dupes.csv file, the html file require
     print("scan finished")
     print(flaged)
     print(dupe)
+
     return(flaged)# this is what makes the dupes.csv file, the html file requires this
 
 
@@ -317,6 +321,12 @@ if __name__ == '__main__':
 
         updates = 1
 
+try:
+    rootdir, html_file_dir, scanType, update = read_config()
+except :
+    files_too_download = [['https://raw.githubusercontent.com/thewaterdowngiraffe/Nas-Scanner/master/required/config.conf','files','files\\config.conf'],]
+    download_updates(files_too_download)
+    updates = 1
 
 
 
@@ -347,6 +357,8 @@ if __name__ == '__main__':
     #   2 is light (looks at file names nothing else)
     #   #
 
+
+Run(rootdir,html_file_dir,scanType) #  uncomment to run 
 
     #Run(rootdir,html_file_dir,scanType) #  uncomment to run 
     #clean_up() ## removes bulky and unreadable files
