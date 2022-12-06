@@ -5,14 +5,14 @@ import sys
 import os
 from timeit import default_timer as timer 
 
-def run_logs(start=0, file_count="unknown",scantype="unknown",output_lvl="unknown",target="Unknown",html_target="Unknown",dupes=0):
+def run_logs(start=0, file_count="unknown",scantype="unknown",output_lvl="unknown",target="Unknown",html_target="Unknown",dupes=0,Livepage=0):
     finish = timer()
     time =  finish - start
     if os.path.isfile("scan_logs.csv")== False:
         with open("scan_logs.csv", "a+") as log_file:
-            log_file.write("Start_time,Finish_time,Run_time,File_count,Scan_type,Output_lvl,Scan_dir,Number_of_dupes,OS,OS_Version\n")
+            log_file.write("Start_time,Finish_time,Run_time,File_count,Scan_type,Output_lvl,Live_Page,Scan_dir,Number_of_dupes,OS,OS_Version\n")
     with open("scan_logs.csv", "a+") as log_file:
-        log_file.write(str(start)+","+str(finish)+","+str(time)+","+str(file_count)+","+str(scantype)+","+str(output_lvl)+","+str(target)+","+str(html_target)+","+str(dupes)+","+str(platform.system())+","+str(platform.release())+"\n")
+        log_file.write(str(start)+","+str(finish)+","+str(time)+","+str(file_count)+","+str(scantype)+","+str(output_lvl)+","+str(Livepage)+","+str(target)+","+str(html_target)+","+str(dupes)+","+str(platform.system())+","+str(platform.release())+"\n")
 
 
 def error_log(error):
@@ -55,9 +55,15 @@ def read_config(): # reads the config file and returns setting and directorys to
                         outputlevel = int(line[len("outputlevel="):len(line)-1])
                     except :
                         outputlevel = 1
+                if "Livepage=" in line:
+                    try:
+                        Livepage = int(line[len("Livepage="):len(line)-1])
+                    except :
+                        Livepage = 0
 
 
-    return(scan_dir,html_file_dir,scantype,update,outputlevel)
+
+    return(scan_dir,html_file_dir,scantype,update,outputlevel,Livepage)
 
 def file_prep():
     d = open("files\\Files dir.txt", "w+")

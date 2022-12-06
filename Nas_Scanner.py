@@ -308,7 +308,7 @@ def download_updates(files,output=1): #using list provided download the file and
         
 
 if __name__ == '__main__':
-
+    start = timer()
     # The program will exit if there are only daemonic threads left.
 
     ## things to add
@@ -348,22 +348,21 @@ if __name__ == '__main__':
 
 
     try:
-        rootdir, html_file_dir, scanType, update, output = read_config()
+        rootdir, html_file_dir, scanType, update, output,Livepage = read_config()
     except :
         files_too_download = [['https://raw.githubusercontent.com/thewaterdowngiraffe/Nas-Scanner/master/required/config.conf','files','files\\config.conf'],]
         download_updates(files_too_download)
-
+        print("config file missing, this is either first time installing or a file was deleted. please look at the config file")
         osCommandString = "notepad.exe files\\config.conf"  #open file that was just downloaded and present to user
         os.system("files\\config.conf")
-
-        updates = 1
-
+        quit()
 
 
 
 
 
 
+        
     ## update/download update function 
     # dir to make must not be left blank please leave it as '' if there is no directory to make
     # [link, dir to make, filename/location]
@@ -380,7 +379,7 @@ if __name__ == '__main__':
         download_updates(files_too_download)
     
 
-
+    file_count = 0
 
 
     #   scan type is a number that will represent the type of scan
@@ -389,21 +388,19 @@ if __name__ == '__main__':
     #   2 is light (looks at file names nothing else)
     #   #
     
+    time_start = timer() - start 
 
-    file_count = Run(rootdir,html_file_dir,scanType,output) #  uncomment to run 
+    #file_count = Run(rootdir,html_file_dir,scanType,output) #  uncomment to run 
 
-    start = timer()
-    
+    run_logs(start, file_count,scanType,output,rootdir,html_file_dir,scan_other(0),Livepage)
 
-    run_logs(start, file_count,scanType,output,rootdir,html_file_dir,scan_other(0))
-
-
+    #clean_up()
 
    
 
 
 
-
+    print("\n\n\t\t",end="")
 
 
     #  uncomment to run 
