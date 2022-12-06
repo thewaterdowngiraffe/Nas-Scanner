@@ -3,6 +3,17 @@ import platform
 import hashlib
 import sys
 import os
+from timeit import default_timer as timer 
+
+def run_logs(start=0, file_count="unknown",scantype="unknown",output_lvl="unknown",target="Unknown",html_target="Unknown",dupes=0):
+    finish = timer()
+    time =  finish - start
+    if os.path.isfile("scan_logs.csv")== False:
+        with open("scan_logs.csv", "a+") as log_file:
+            log_file.write("Start_time,Finish_time,Run_time,File_count,Scan_type,Output_lvl,Scan_dir,Number_of_dupes,OS,OS_Version\n")
+    with open("scan_logs.csv", "a+") as log_file:
+        log_file.write(str(start)+","+str(finish)+","+str(time)+","+str(file_count)+","+str(scantype)+","+str(output_lvl)+","+str(target)+","+str(html_target)+","+str(dupes)+","+str(platform.system())+","+str(platform.release())+"\n")
+
 
 def error_log(error):
     with open("Error.log.csv", "a+") as log_file:
@@ -38,7 +49,15 @@ def read_config(): # reads the config file and returns setting and directorys to
                     scantype = line[len("scantype="):len(line)-1]
                 if "update=" in line:
                     update = line[len("update="):len(line)-1]
-    return(scan_dir,html_file_dir,scantype,update)
+
+                if "outputlevel=" in line:
+                    try:
+                        outputlevel = int(line[len("outputlevel="):len(line)-1])
+                    except :
+                        outputlevel = 1
+
+
+    return(scan_dir,html_file_dir,scantype,update,outputlevel)
 
 def file_prep():
     d = open("files\\Files dir.txt", "w+")
