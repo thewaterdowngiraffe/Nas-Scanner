@@ -21,6 +21,8 @@
 /.gitignore
 /html
 *.BAT
+/files/File duplicates.txt
+/files/dupes.csv
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
