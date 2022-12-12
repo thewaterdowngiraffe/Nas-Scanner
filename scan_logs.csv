@@ -1,0 +1,5 @@
+Start_time,Finish_time,Run_time,File_count,Scan_type,Output_lvl,Live_Page,Scan_dir,Number_of_dupes,HTML_page_location,OS,OS_Version
+0.1807213,658.2441746,658.0634533,7657,0,5,0,\\192.168.2.194\nasdrive\keegan\pictures\photoes,53,html,Windows,10
+0.2053184,692.7478368,692.5425184,7657,0,1,0,\\192.168.2.194\nasdrive\keegan\pictures\photoes,53,html,Windows,10
+0.5089338,739.1836102,738.6746764,25998,0,1,0,D:\,4562,html,Windows,10
+0.1852625,663.0889945,662.903732,25998,0,4,0,D:\,4562,html,Windows,10

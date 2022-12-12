@@ -1,7 +1,6 @@
 
 import time
 import os
-import requests
 import os.path
 import time
 from timeit import default_timer as timer   
@@ -12,7 +11,6 @@ from driver_functions import *
 
 
 def dirGet(rootdir,file_count,finished,file_extensions,timeStart,html_file_dir,scanType,output=1):
-
     for file in os.listdir(rootdir):
         d = os.path.join(rootdir, file)
         if os.path.isdir(d):
@@ -25,7 +23,6 @@ def dirGet(rootdir,file_count,finished,file_extensions,timeStart,html_file_dir,s
             if output >= 2:
                 os.system('cls')
                 print("current scan directory: {}\nScanning {} files. scan completed on {} files.\nPersentage finished: {}%".format( d, file_count, finished, round((finished/file_count)*100,2)))
-
             if (finished != 0):
                 if output >= 2:
                     print("time remaining {} min".format(  round((((time.perf_counter() - timeStart)*(file_count-finished)/finished))/60 ,2)))
@@ -91,8 +88,6 @@ def files(rootdir,file_extensions,scanType,output=1):
                         print("\t\t"+x)
                 d.close
                 h.close
-
-
     return(count)
 
 
@@ -253,52 +248,6 @@ def make_HTML(num,html_file_dir,output=1): # make html pages from csv content
 
 
 
-def download_updates(files,output=1): #using list provided download the file and name it/place  in correct directory
-    if output >= 2:
-        print("starting update\ndownloading {} files".format(len(files)))
-    count = 0
-    for file_download in files:
-        if not "conf" in file_download[2]:
-            print(file_download[2])
-            if output >= 3:
-                print(file_download[2])
-            count +=1
-            if output >= 2:
-                print("files downloaded {}/{}".format(count,len(files)))
-            if output == 1:
-                print(loading(count,len(files),"downloading"),end = "")
-            if not file_download[1] == '':
-                MYDIR = (file_download[1])
-                CHECK_FOLDER = os.path.isdir(MYDIR)
-                if not CHECK_FOLDER:
-                    os.makedirs(MYDIR)
-            r = requests.get(file_download[0], allow_redirects=True)    
-            open(file_download[2], 'wb').write(r.content)
-        elif os.path.isfile(file_download[2]) == False:
-            if output >= 3:
-                print(file_download[2])
-            count +=1
-            if output >= 2:
-                print("files downloaded {}/{}".format(count,len(files)))
-            if output == 1:
-                print(loading(count,len(files),"downloading"),end = "")
-            if not file_download[1] == '':
-                MYDIR = (file_download[1])
-                CHECK_FOLDER = os.path.isdir(MYDIR)
-                if not CHECK_FOLDER:
-                    os.makedirs(MYDIR)
-            r = requests.get(file_download[0], allow_redirects=True)    
-            open(file_download[2], 'wb').write(r.content)
-        else:
-            if output >= 2:
-                print("skipping {}".format(file_download[2]))
-            count +=1
-            if output >= 2:
-                print("files downloaded {}/{}".format(count,len(files)))
-            if output == 1:
-                print(loading(count,len(files),"downloading"),end = "")
-    if output >= 1:
-        print("\n\tupdate finished")
 
 
 
@@ -309,6 +258,8 @@ def download_updates(files,output=1): #using list provided download the file and
 
 if __name__ == '__main__':
     start = timer()
+
+
     # The program will exit if there are only daemonic threads left.
 
     ## things to add
@@ -350,6 +301,8 @@ if __name__ == '__main__':
     try:
         rootdir, html_file_dir, scanType, update, output,Livepage = read_config()
     except :
+        print(sys.exc_info()[1])
+        error_log(sys.exc_info()[1])
         files_too_download = [['https://raw.githubusercontent.com/thewaterdowngiraffe/Nas-Scanner/master/required/config.conf','files','files\\config.conf'],]
         download_updates(files_too_download)
         print("config file missing, this is either first time installing or a file was deleted. please look at the config file")
@@ -388,18 +341,21 @@ if __name__ == '__main__':
     #   2 is light (looks at file names nothing else)
     #   #
     
+
+
+
+
+
+
+
+
+
     time_start = timer() - start 
 
-    #file_count = Run(rootdir,html_file_dir,scanType,output) #  uncomment to run 
-
-    run_logs(start, file_count,scanType,output,rootdir,html_file_dir,scan_other(0),Livepage)
-
+    file_count = Run(rootdir,html_file_dir,scanType,output) #  uncomment to run 
     #clean_up()
-
-   
-
-
-
+    make_HTML(scan_other(),html_file_dir)
+    run_logs(start, file_count,scanType,output,rootdir,html_file_dir,scan_other(0),Livepage)
     print("\n\n\t\t",end="")
 
 

@@ -1,6 +1,7 @@
 from datetime import datetime
 import platform
 import hashlib
+import requests
 import sys
 import os
 from timeit import default_timer as timer 
@@ -10,9 +11,9 @@ def run_logs(start=0, file_count="unknown",scantype="unknown",output_lvl="unknow
     time =  finish - start
     if os.path.isfile("scan_logs.csv")== False:
         with open("scan_logs.csv", "a+") as log_file:
-            log_file.write("Start_time,Finish_time,Run_time,File_count,Scan_type,Output_lvl,Live_Page,Scan_dir,Number_of_dupes,OS,OS_Version\n")
+            log_file.write("Start_time,Finish_time,Run_time,File_count,Scan_type,Output_lvl,Live_Page,Scan_dir,Number_of_dupes,HTML_page_location,OS,OS_Version\n")
     with open("scan_logs.csv", "a+") as log_file:
-        log_file.write(str(start)+","+str(finish)+","+str(time)+","+str(file_count)+","+str(scantype)+","+str(output_lvl)+","+str(Livepage)+","+str(target)+","+str(html_target)+","+str(dupes)+","+str(platform.system())+","+str(platform.release())+"\n")
+        log_file.write(str(start)+","+str(finish)+","+str(time)+","+str(file_count)+","+str(scantype)+","+str(output_lvl)+","+str(Livepage)+","+str(target)+","+str(dupes)+","+str(html_target)+","+str(platform.system())+","+str(platform.release())+"\n")
 
 
 def error_log(error):
@@ -141,3 +142,51 @@ def clean_up():
     os.remove("files\\Files dir.txt")
     os.remove("files\\Files hash.txt")
     os.remove("files\\status.run")
+
+
+
+def download_updates(files,output=1): #using list provided download the file and name it/place  in correct directory
+    if output >= 2:
+        print("starting update\ndownloading {} files".format(len(files)))
+    count = 0
+    for file_download in files:
+        if not "conf" in file_download[2]:
+            if output >= 3:
+                print(file_download[2])
+            count +=1
+            if output >= 2:
+                print("files downloaded {}/{}".format(count,len(files)))
+            if output == 1:
+                print(loading(count,len(files),"downloading"),end = "")
+            if not file_download[1] == '':
+                MYDIR = (file_download[1])
+                CHECK_FOLDER = os.path.isdir(MYDIR)
+                if not CHECK_FOLDER:
+                    os.makedirs(MYDIR)
+            r = requests.get(file_download[0], allow_redirects=True)    
+            open(file_download[2], 'wb').write(r.content)
+        elif os.path.isfile(file_download[2]) == False:
+            if output >= 3:
+                print(file_download[2])
+            count +=1
+            if output >= 2:
+                print("files downloaded {}/{}".format(count,len(files)))
+            if output == 1:
+                print(loading(count,len(files),"downloading"),end = "")
+            if not file_download[1] == '':
+                MYDIR = (file_download[1])
+                CHECK_FOLDER = os.path.isdir(MYDIR)
+                if not CHECK_FOLDER:
+                    os.makedirs(MYDIR)
+            r = requests.get(file_download[0], allow_redirects=True)    
+            open(file_download[2], 'wb').write(r.content)
+        else:
+            if output >= 2:
+                print("skipping {}".format(file_download[2]))
+            count +=1
+            if output >= 2:
+                print("files downloaded {}/{}".format(count,len(files)))
+            if output == 1:
+                print(loading(count,len(files),"downloading"),end = "")
+    if output >= 1:
+        print("\n\tupdate finished")
